@@ -6,6 +6,7 @@
 package medianfilterparallel;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
@@ -21,9 +22,6 @@ import javax.imageio.ImageIO;
  * @author rowanvi
  */
 public class Image {
-
-    private Object lock1 = new Object();
-    private Object lock2 = new Object();
 
     private String input;
     private String outputFile;
@@ -77,88 +75,82 @@ public class Image {
         this.outputCreatedFile = file;
     }
 
-    public void applyMedianFilterOnOtherImages() throws Exception {
-        synchronized (lock1) {
-            File f = new File(this.input);                               //Input Photo File
-            Color[] surroundedPixel = new Color[9];
-            int[] R = new int[9];
-            int[] B = new int[9];
-            int[] G = new int[9];
-            this.outputCreatedFile = new File(this.outputFile);
-            this.img = ImageIO.read(f);
-            for (int i = 1; i < this.img.getWidth() - 1; i++) {
-                for (int j = 1; j < this.img.getHeight() - 1; j++) {
-                    surroundedPixel[0] = new Color(this.img.getRGB(i - 1, j - 1));
-                    surroundedPixel[1] = new Color(this.img.getRGB(i - 1, j));
-                    surroundedPixel[2] = new Color(this.img.getRGB(i - 1, j + 1));
-                    surroundedPixel[3] = new Color(this.img.getRGB(i, j + 1));
-                    surroundedPixel[4] = new Color(this.img.getRGB(i + 1, j + 1));
-                    surroundedPixel[5] = new Color(this.img.getRGB(i + 1, j));
-                    surroundedPixel[6] = new Color(this.img.getRGB(i + 1, j - 1));
-                    surroundedPixel[7] = new Color(this.img.getRGB(i, j - 1));
-                    surroundedPixel[8] = new Color(this.img.getRGB(i, j));
-                    for (int k = 0; k < 9; k++) {
-                        R[k] = surroundedPixel[k].getRed();
-                        B[k] = surroundedPixel[k].getBlue();
-                        G[k] = surroundedPixel[k].getGreen();
-                    }
-                    Arrays.sort(R);
-                    Arrays.sort(G);
-                    Arrays.sort(B);
-                    this.img.setRGB(i, j, new Color(R[4], B[4], G[4]).getRGB());
-                }
+    public BufferedImage[] splitImage() throws Exception {
+        int rows = 2; //You should decide the values for rows and cols variables
+        int cols = 2;
+        int chunks = rows * cols;
+        File f = new File(this.input);
+        this.img = ImageIO.read(f);
+
+        int chunkWidth = this.img.getWidth() / cols; // determines the chunk width and height
+        int chunkHeight = this.img.getHeight() / rows;
+
+        BufferedImage imgs[] = new BufferedImage[chunks];
+        int count = 0;
+
+        for (int x = 0; x < rows; x++) {
+            for (int y = 0; y < cols; y++) {
+                //Initialize the image array with image chunks
+                imgs[count] = new BufferedImage(chunkWidth, chunkHeight, this.img.getType());
+
+                // draws the image chunk
+                Graphics2D gr = imgs[count++].createGraphics();
+                gr.drawImage(this.img, 0, 0, chunkWidth, chunkHeight, chunkWidth * y, chunkHeight * x, chunkWidth * y + chunkWidth, chunkHeight * x + chunkHeight, null);
+                gr.dispose();
             }
         }
-        synchronized (lock2) {
-            
-            this.setImg(img);
-        }
-
+        return imgs;
     }
 
-//NOT IN USE FOR NOW
-    public void applyMedianFilterOnPGM() throws FileNotFoundException, IOException {
-        String filePath = this.input;
-        FileInputStream fileInputStream = new FileInputStream(filePath);
-        File output = new File(outputFile);
-
-        Scanner scan = new Scanner(fileInputStream);
-        // Discard the magic number
-        scan.nextLine();
-        // Discard the comment line
-        scan.nextLine();
-        // Read pic width, height and max value
-        int picWidth = scan.nextInt();
-        int picHeight = scan.nextInt();
-        int maxvalue = scan.nextInt();
-
-        fileInputStream.close();
-
-        // Now parse the file as binary data
-        fileInputStream = new FileInputStream(filePath);
-        DataInputStream dis = new DataInputStream(fileInputStream);
-
-        // look for 4 lines (i.e.: the header) and discard them
-        int numnewlines = 4;
-        while (numnewlines > 0) {
-            char c;
-            do {
-                c = (char) (dis.readUnsignedByte());
-            } while (c != '\n');
-            numnewlines--;
-        }
-
-        // read the image data
-        int[][] data2D = new int[picHeight][picWidth];
-        for (int row = 0; row < picHeight; row++) {
-            for (int col = 0; col < picWidth; col++) {
-                data2D[row][col] = dis.readUnsignedByte();
-                System.out.print(data2D[row][col] + " ");
+    public void combineChunks(BufferedImage imgs[]) throws IOException, Exception {
+        int rows = 2;   //we assume the no. of rows and cols are known and each chunk has equal width and height
+        int cols = 2;
+        int chunks = rows * cols;
+        int chunkWidth, chunkHeight;
+        chunkWidth = imgs[0].getWidth();
+        chunkHeight = imgs[0].getHeight();
+        BufferedImage finalImg = new BufferedImage(chunkWidth * cols, chunkHeight * rows, this.img.getType());
+        int num = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                finalImg.createGraphics().drawImage(imgs[num], chunkWidth * j, chunkHeight * i, null);
+                num++;
             }
-
-            System.out.println();
-
         }
-        System.out.println("HIER MOET IE NOG AANGEMAAKT WORDEN MET MEDIAN FILTER");
+        this.setImg(finalImg);
+        applyMedianFilterOnOtherImages(this.img);
+        System.out.println("Image concatenated.....");
+        ImageIO.write(this.img, "png", new File(this.outputFile));
+    }
+
+    public void applyMedianFilterOnOtherImages(BufferedImage chunk) throws Exception {
+        Color[] surroundedPixel = new Color[9];
+        int[] R = new int[9];
+        int[] B = new int[9];
+        int[] G = new int[9];
+        for (int i = 1; i < chunk.getWidth() - 1; i++) {
+            for (int j = 1; j < chunk.getHeight() - 1; j++) {
+                surroundedPixel[0] = new Color(chunk.getRGB(i - 1, j - 1));
+                surroundedPixel[1] = new Color(chunk.getRGB(i - 1, j));
+                surroundedPixel[2] = new Color(chunk.getRGB(i - 1, j + 1));
+                surroundedPixel[3] = new Color(chunk.getRGB(i, j + 1));
+                surroundedPixel[4] = new Color(chunk.getRGB(i + 1, j + 1));
+                surroundedPixel[5] = new Color(chunk.getRGB(i + 1, j));
+                surroundedPixel[6] = new Color(chunk.getRGB(i + 1, j - 1));
+                surroundedPixel[7] = new Color(chunk.getRGB(i, j - 1));
+                surroundedPixel[8] = new Color(chunk.getRGB(i, j));
+                for (int k = 0; k < 9; k++) {
+                    R[k] = surroundedPixel[k].getRed();
+                    B[k] = surroundedPixel[k].getBlue();
+                    G[k] = surroundedPixel[k].getGreen();
+                }
+                Arrays.sort(R);
+                Arrays.sort(G);
+                Arrays.sort(B);
+                chunk.setRGB(i, j, new Color(R[4], B[4], G[4]).getRGB());
+            }
+        }
+
+        this.setImg(img);
     }
 }

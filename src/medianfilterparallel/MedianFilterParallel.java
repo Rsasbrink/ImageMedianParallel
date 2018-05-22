@@ -25,46 +25,59 @@ class MedianFilterParallel {
     //PICTURES http://people.sc.fsu.edu/~jburkardt/data/pgma/pgma.html
     public static void main(String[] a) throws Throwable {
         final String fileType = "png";
-        final String file = "/Users/rowanvi/Desktop/balloons_noisy-color.png";
-        final String outputFile = "/Users/rowanvi/Desktop/output8.png";
-        final int threadLength = 1;
+        final String file = "input2.png";
+        final String outputFile = "output2.png";
+        final int threadLength = 4;
         final Thread[] threads = new Thread[threadLength];
-        
-        long startTime = System.nanoTime();
-        
+        long startTime = System.currentTimeMillis();
+
         final Image image = new Image(file, outputFile, fileType);
         BufferedImage outputImage = null;
-
+        BufferedImage splitTemp[] = new BufferedImage[threadLength];
+       
+        try {
+            splitTemp = image.splitImage();
+        } catch (Exception ex) {
+            Logger.getLogger(MedianFilterParallel.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
+        final BufferedImage imgs[] = splitTemp;
+
+
+
         class FilterThread extends Thread {
+
+
             @Override
             public void run() {
+                BufferedImage tempImgs[] = new BufferedImage[imgs.length];
                 try {
-                   
-                  image.applyMedianFilterOnOtherImages();
-                   
+                    for(int i = 0; i < threadLength; i++){
+                        tempImgs[i] = imgs[i];
 
+                        image.applyMedianFilterOnOtherImages(tempImgs[i]);
+                    }
                 } catch (Exception ex) {
                     Logger.getLogger(MedianFilterParallel.class.getName()).log(Level.SEVERE, null, ex);
                 }
+
             }
         }
+
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new FilterThread();
             threads[i].start();
             threads[i].join();
         }
-        
-        ImageIO.write(image.getImg(), image.getFileType(), image.getOutputCreatedFile());
-        
-        long endTime = System.nanoTime();
+        try {
+            image.combineChunks(imgs);
+        } catch (IOException ex) {
+            Logger.getLogger(MedianFilterParallel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //ImageIO.write(image.getImg(), image.getFileType(), image.getOutputCreatedFile());
+        long endTime = System.currentTimeMillis();
         long duration = (endTime - startTime);
+
         System.out.println("Duration " + duration);
-        //NOT IN USE FOR NOW
-//        if(fileType == "PGM"){
-//            md.applyMedianFilterOnPGM(file, outputFile);
-//        }else{
-//            md.applyMedianFilterOnOtherImages(file, outputFile, fileType);
-//        }
     }
 }
