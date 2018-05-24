@@ -30,7 +30,6 @@ class MedianFilterParallel {
         final int threadLength = 4;
         final Thread[] threads = new Thread[threadLength];
         long startTime = System.currentTimeMillis();
-
         final Image image = new Image(file, outputFile, fileType);
         BufferedImage outputImage = null;
         BufferedImage splitTemp[] = new BufferedImage[threadLength];
@@ -42,29 +41,31 @@ class MedianFilterParallel {
         }
         
         final BufferedImage imgs[] = splitTemp;
-
+        
 
 
         class FilterThread extends Thread {
-
+            
 
             @Override
             public void run() {
-                BufferedImage tempImgs[] = new BufferedImage[imgs.length];
+                
                 try {
-                    for(int i = 0; i < threadLength; i++){
-                        tempImgs[i] = imgs[i];
+                    BufferedImage tempImgs[] = new BufferedImage[imgs.length];
+                    int count = MedianFilterParallel.getThreadCount();
+                    tempImgs[count] = imgs[count];
 
-                        image.applyMedianFilterOnOtherImages(tempImgs[i]);
-                    }
+                    image.applyMedianFilterOnOtherImages(tempImgs[count]);
                 } catch (Exception ex) {
                     Logger.getLogger(MedianFilterParallel.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                    
 
             }
         }
-
+        
         for (int i = 0; i < threads.length; i++) {
+            MedianFilterParallel.threadCount = i;
             threads[i] = new FilterThread();
             threads[i].start();
             
@@ -83,4 +84,15 @@ class MedianFilterParallel {
 
         System.out.println("Duration " + duration);
     }
+    
+    private static int threadCount = 0;
+
+    public static synchronized int getThreadCount() {
+        return threadCount;
+    }
+
+    public void setThreadCount(int threadCount) {
+        this.threadCount = threadCount;
+    }
+
 }

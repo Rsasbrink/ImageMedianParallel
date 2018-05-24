@@ -76,6 +76,7 @@ public class Image {
     }
 
     public BufferedImage[] splitImage() throws Exception {
+        long startTime = System.currentTimeMillis();
         int rows = 2; //You should decide the values for rows and cols variables
         int cols = 2;
         int chunks = rows * cols;
@@ -99,10 +100,15 @@ public class Image {
                 gr.dispose();
             }
         }
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime);
+
+        System.out.println("Duration Splitimage Parallel " + duration);
         return imgs;
     }
 
     public void combineChunks(BufferedImage imgs[]) throws IOException, Exception {
+        long startTime = System.currentTimeMillis();
         int rows = 2;   //we assume the no. of rows and cols are known and each chunk has equal width and height
         int cols = 2;
         int chunks = rows * cols;
@@ -121,9 +127,14 @@ public class Image {
         applyMedianFilterOnOtherImages(this.img);
         System.out.println("Image concatenated.....");
         ImageIO.write(this.img, "png", new File(this.outputFile));
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime);
+
+        System.out.println("Duration Image Combining Parallel " + duration);
     }
 
     public void applyMedianFilterOnOtherImages(BufferedImage chunk) throws Exception {
+        long startTime = System.currentTimeMillis();
         Color[] surroundedPixel = new Color[9];
         int[] R = new int[9];
         int[] B = new int[9];
@@ -152,5 +163,9 @@ public class Image {
         }
 
         this.setImg(img);
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime);
+
+        System.out.println("Duration Image MEdian filter Parallel " + duration);
     }
 }
