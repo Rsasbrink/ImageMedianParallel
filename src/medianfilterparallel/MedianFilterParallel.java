@@ -24,16 +24,17 @@ class MedianFilterParallel {
 
     //PICTURES http://people.sc.fsu.edu/~jburkardt/data/pgma/pgma.html
     public static void main(String[] a) throws Throwable {
-        final String extension = ".png";
-        final String input = "input2.png";
-        final String output = input + "median-applied" + extension;
-       
+        final String extension = "png";
+        final String input = "input1.png";
+        final String output = "output1.png";
+
         final int threadsAmount = 4;
 
         long startTime = System.currentTimeMillis();
         final Image image = new Image(input, output, extension);
 
         image.applyMedian(threadsAmount);
-
+        long duration = System.currentTimeMillis() - startTime;
+        System.out.println("duration: " + duration);
     }
 }
