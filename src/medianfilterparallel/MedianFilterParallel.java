@@ -28,14 +28,15 @@ class MedianFilterParallel {
         final String input = "input1.png";
         final String output = "output1.png";
 
-        final int threadsAmount = 4;
+        final int threadsAmount = 200;
         final Thread[] threads = new Thread[threadsAmount];
-        
+
         long startTime = System.currentTimeMillis();
         final Image image = new Image(input, output, extension);
-        
+
         class filterThread extends Thread {
-            public void run(){
+
+            public void run() {
                 try {
                     image.applyMedian(threadsAmount);
                 } catch (Exception ex) {
@@ -43,16 +44,17 @@ class MedianFilterParallel {
                 }
             }
         }
-        
+
         for (int i = 0; i < threadsAmount; i++) {
             threads[i] = new filterThread();
             threads[i].start();
-                        threads[i].join();
+        }
+        for (int i = 0; i < threadsAmount; i++) {
+            threads[i].join();
 
         }
-        
         image.createImage();
-        
+
         long duration = System.currentTimeMillis() - startTime;
         System.out.println("duration: " + duration);
     }
