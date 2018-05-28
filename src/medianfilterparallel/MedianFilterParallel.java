@@ -28,7 +28,7 @@ class MedianFilterParallel {
         final String input = "input1.png";
         final String output = "output1.png";
 
-        final int threadsAmount = 200;
+        final int threadsAmount = 3;
         final Thread[] threads = new Thread[threadsAmount];
 
         long startTime = System.currentTimeMillis();
@@ -36,6 +36,7 @@ class MedianFilterParallel {
 
         class filterThread extends Thread {
 
+            @Override
             public void run() {
                 try {
                     image.applyMedian(threadsAmount);
@@ -51,7 +52,6 @@ class MedianFilterParallel {
         }
         for (int i = 0; i < threadsAmount; i++) {
             threads[i].join();
-
         }
         image.createImage();
 
