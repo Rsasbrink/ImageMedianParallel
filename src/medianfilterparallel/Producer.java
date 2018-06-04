@@ -3,7 +3,6 @@ package medianfilterparallel;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,12 +26,10 @@ public class Producer implements Runnable {
  
     public void run() {
         try {
-            for (int i = 0; i < 10; i++) { //DIE 10 MOET NAAR CONSUMERAMOUT MAYBE +1 MODULO AFHANKELIJK
-                queue.put(produce());
- 
-                Thread.sleep(500);
-            }
- 
+            
+            produce();
+            Thread.sleep(500);
+
             queue.put(-1);  // indicates end of producing
  
             System.out.println("Producer STOPPED.");
@@ -44,7 +41,7 @@ public class Producer implements Runnable {
         }
     }
  
-    private Object produce() throws IOException {
+    private void produce() throws IOException, InterruptedException {
         Integer number = new Integer((int) (Math.random() * 100));
         //HIER METHODE UITVOEREN DIE COORDINATEN RETURNED IN EEN OBJECT
  
@@ -62,10 +59,15 @@ public class Producer implements Runnable {
         modulo = imageHeight % packageAmount;
         
         if(modulo > 0){
-            
+            for (int i = 1; i <= packageAmount + 1; i++) {
+                Object currentObject = new Object(){int height = heightPerPackage; int width = imageWidth;};
+                queue.put(currentObject);
+            }
         }else{
-            
+            for (int i = 1; i <= packageAmount; i++) {
+                Object currentObject = new Object(){int height = heightPerPackage; int width = imageWidth;};
+                queue.put(currentObject);
+            }      
         }
-        return number;
     }
 }
