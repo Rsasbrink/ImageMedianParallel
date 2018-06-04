@@ -87,8 +87,13 @@ public class Image {
         int[] R = new int[9];
         int[] B = new int[9];
         int[] G = new int[9];
-
-        for (int j = 1 + offsetHeight ; j < offsetHeight + height - 1; j++) {
+        
+        if(offsetHeight != 0){
+            offsetHeight = offsetHeight - 1;
+        }else if(offsetHeight == 0){
+            offsetHeight = offsetHeight + 1;
+        }
+        for (int j = offsetHeight ; j < offsetHeight + height; j++) {
             for (int i = 1; i < this.image.getWidth() - 1; i++) {
                 surroundedPixel[0] = new Color(this.originalImage.getRGB(i - 1, j - 1));
                 surroundedPixel[1] = new Color(this.originalImage.getRGB(i - 1, j));
