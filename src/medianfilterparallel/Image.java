@@ -15,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -30,7 +32,8 @@ public class Image {
     private String extension;
     private BufferedImage image = null;
     private int count = 0;
-
+    private int modulo = 0;
+    
     public BufferedImage getImage() {
         return image;
     }
@@ -76,20 +79,13 @@ public class Image {
     public void setExtension(String extension) {
         this.extension = extension;
     }
+    
 
     public synchronized void applyMedian(int threadAmount) throws IOException, Exception {
-        File imageFile = new File(this.input);
-        BufferedImage bufferedImage = ImageIO.read(imageFile);
         int threadCounter = this.getCount();
         this.setCount(this.count + 1);
-        int imageHeight = bufferedImage.getHeight();
-        int imageWidth = bufferedImage.getWidth();
-        if (this.image == null) {
-            this.image = new BufferedImage(imageWidth, imageHeight, bufferedImage.getType());
-        }
 
-        int heightPerThread = imageHeight / threadAmount;
-        int modulo = imageHeight % threadAmount;
+
         Color[] surroundedPixel = new Color[9];
         int[] R = new int[9];
         int[] B = new int[9];
@@ -117,7 +113,7 @@ public class Image {
                 this.image.setRGB(i, j, new Color(R[4], B[4], G[4]).getRGB());
             }
         }
-        if (modulo > 0 && threadAmount == (threadCounter + 1)) {
+        if (this.modulo > 0 && threadAmount == (threadCounter + 1)) {
             for (int j = (heightPerThread * threadAmount); j < (heightPerThread * threadAmount) + modulo - 2; j++) {
                 for (int i = 1; i < bufferedImage.getWidth() - 1; i++) {
                     surroundedPixel[0] = new Color(bufferedImage.getRGB(i - 1, j - 1));
