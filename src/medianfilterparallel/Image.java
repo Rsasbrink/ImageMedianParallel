@@ -31,8 +31,23 @@ public class Image {
     private String output;
     private String extension;
     private BufferedImage image = null;
+    private BufferedImage originalImage;
     private int count = 0;
     private int modulo = 0;
+    
+      public Image(String input, String output, String extension) {
+        this.input = input;
+        this.output = output;
+        this.extension = extension;
+    }
+    
+      public BufferedImage getOriginalImage() {
+        return originalImage;
+    }
+
+    public void setOriginalImage(BufferedImage originalImage) {
+        this.originalImage = originalImage;
+    }
     
     public BufferedImage getImage() {
         return image;
@@ -40,20 +55,6 @@ public class Image {
 
     public void setImage(BufferedImage image) {
         this.image = image;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
-    }
-
-    public Image(String input, String output, String extension) {
-        this.input = input;
-        this.output = output;
-        this.extension = extension;
     }
 
     public String getInput() {
@@ -81,38 +82,34 @@ public class Image {
     }
     
 
-    public synchronized void applyMedian(int threadAmount) throws IOException, Exception {
-        int threadCounter = this.getCount();
-        this.setCount(this.count + 1);
-
-
+    public synchronized void applyMedian(int offsetHeight, int height, int width) throws IOException, Exception {
         Color[] surroundedPixel = new Color[9];
         int[] R = new int[9];
         int[] B = new int[9];
         int[] G = new int[9];
 
-//        for (int j = 1 + ((heightPerThread - 2) * threadCounter); j < (heightPerThread * (threadCounter + 1)) - 1; j++) {
-//            for (int i = 1; i < bufferedImage.getWidth() - 1; i++) {
-//                surroundedPixel[0] = new Color(bufferedImage.getRGB(i - 1, j - 1));
-//                surroundedPixel[1] = new Color(bufferedImage.getRGB(i - 1, j));
-//                surroundedPixel[2] = new Color(bufferedImage.getRGB(i - 1, j + 1));
-//                surroundedPixel[3] = new Color(bufferedImage.getRGB(i, j + 1));
-//                surroundedPixel[4] = new Color(bufferedImage.getRGB(i + 1, j + 1));
-//                surroundedPixel[5] = new Color(bufferedImage.getRGB(i + 1, j));
-//                surroundedPixel[6] = new Color(bufferedImage.getRGB(i + 1, j - 1));
-//                surroundedPixel[7] = new Color(bufferedImage.getRGB(i, j - 1));
-//                surroundedPixel[8] = new Color(bufferedImage.getRGB(i, j));
-//                for (int k = 0; k < 9; k++) {
-//                    R[k] = surroundedPixel[k].getRed();
-//                    B[k] = surroundedPixel[k].getBlue();
-//                    G[k] = surroundedPixel[k].getGreen();
-//                }
-//                Arrays.sort(R);
-//                Arrays.sort(G);
-//                Arrays.sort(B);
-//                this.image.setRGB(i, j, new Color(R[4], B[4], G[4]).getRGB());
-//            }
-//        }
+        for (int j = 1 + offsetHeight ; j < offsetHeight + height - 1; j++) {
+            for (int i = 1; i < this.image.getWidth() - 1; i++) {
+                surroundedPixel[0] = new Color(this.originalImage.getRGB(i - 1, j - 1));
+                surroundedPixel[1] = new Color(this.originalImage.getRGB(i - 1, j));
+                surroundedPixel[2] = new Color(this.originalImage.getRGB(i - 1, j + 1));
+                surroundedPixel[3] = new Color(this.originalImage.getRGB(i, j + 1));
+                surroundedPixel[4] = new Color(this.originalImage.getRGB(i + 1, j + 1));
+                surroundedPixel[5] = new Color(this.originalImage.getRGB(i + 1, j));
+                surroundedPixel[6] = new Color(this.originalImage.getRGB(i + 1, j - 1));
+                surroundedPixel[7] = new Color(this.originalImage.getRGB(i, j - 1));
+                surroundedPixel[8] = new Color(this.originalImage.getRGB(i, j));
+                for (int k = 0; k < 9; k++) {
+                    R[k] = surroundedPixel[k].getRed();
+                    B[k] = surroundedPixel[k].getBlue();
+                    G[k] = surroundedPixel[k].getGreen();
+                }
+                Arrays.sort(R);
+                Arrays.sort(G);
+                Arrays.sort(B);
+                this.image.setRGB(i, j, new Color(R[4], B[4], G[4]).getRGB());
+            }
+        }
 //        if (this.modulo > 0 && threadAmount == (threadCounter + 1)) {
 //            for (int j = (heightPerThread * threadAmount); j < (heightPerThread * threadAmount) + modulo - 2; j++) {
 //                for (int i = 1; i < bufferedImage.getWidth() - 1; i++) {

@@ -28,16 +28,10 @@ public class Producer implements Runnable {
 
     public void run() {
         try {
-            for (int i = 0; i < 1; i++) {
-                produce();
-                          
-
-            }
-            System.out.println("hi");
-          
            
-
-            System.out.println("Producer STOPPED.");
+                produce();
+            
+               System.out.println("Producer STOPPED.");
 
         } catch (InterruptedException ie) {
             ie.printStackTrace();
@@ -49,18 +43,18 @@ public class Producer implements Runnable {
     private void produce() throws IOException, InterruptedException {
         File imageFile = new File(image.getInput());
         BufferedImage bufferedImage = ImageIO.read(imageFile);
+        image.setOriginalImage(bufferedImage);
         int imageHeight = bufferedImage.getHeight();
         int imageWidth = bufferedImage.getWidth();
-        int modulo = 0;
+        int modulo;
         if (image.getImage() == null) {
             image.setImage(new BufferedImage(imageWidth, imageHeight, bufferedImage.getType()));
         }
-        System.out.println("1");
         final int heightPerPackage = imageHeight / packageAmount;
         modulo = imageHeight % packageAmount;
-        System.out.println("2");
-        for (int i = 0; i <= packageAmount; i++) {
-            System.out.println("3" + i);
+        System.out.println(imageHeight);
+        for (int i = 0; i < packageAmount; i++) {
+     
             final int ii = i;
             Object currentObject;
             currentObject = new Object() {
@@ -70,21 +64,22 @@ public class Producer implements Runnable {
             };
             queue.put(currentObject);
         }
-        System.out.println("4");
+  
         if (modulo > 0) {
             Object moduloObject = new Object() {
+                int offsetHeight = packageAmount*heightPerPackage;
                 int height = imageHeight - (packageAmount * heightPerPackage);
                 int width = imageWidth;
             };
             queue.put(moduloObject);
         }
-        System.out.println("5");
-         Object emptyObject = new Object() {
-                int height = 0;
-                int width = 0;
-            };
-         System.out.println("6");
-         queue.put(emptyObject);
-         System.out.println("7");
+   
+        Object emptyObject = new Object() {
+            int height = 0;
+            int width = 0;
+        };
+       
+        queue.put(emptyObject);
+
     }
 }

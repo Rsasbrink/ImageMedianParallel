@@ -26,49 +26,28 @@ class MedianFilterParallel {
 
     //PICTURES http://people.sc.fsu.edu/~jburkardt/data/pgma/pgma.html
     public static void main(String[] a) throws Throwable {
+        long startTime = System.currentTimeMillis();
         final String extension = "png";
-        final String input = "input2.png";
+        final String input = "input1.png";
         final String output = "output1.png";
         final Image image = new Image(input, output, extension);
-        
-        final int packageAmount = 3;
+
+        final int packageAmount = 4;
         BlockingQueue<Object> queue = new ArrayBlockingQueue<>(packageAmount + 2);
-        
-        
+
         Thread producer = new Thread(new Producer(queue, image, packageAmount));
-      
-        Thread consumer1 = new Thread(new Consumer(queue));
-        Thread consumer2 = new Thread(new Consumer(queue));
-        Thread consumer3 = new Thread(new Consumer(queue));
- 
+
+        Thread consumer1 = new Thread(new Consumer(queue, image));
+        Thread consumer2 = new Thread(new Consumer(queue, image));
+        Thread consumer3 = new Thread(new Consumer(queue, image));
+
         producer.start();
-  producer.join();
-        System.out.println(queue);
-//        final Thread[] threads = new Thread[threadsAmount];
-
-        long startTime = System.currentTimeMillis();
-
-//        class filterThread extends Thread {
-//
-//            @Override
-//            public void run() {
-//                try {
-//                    image.applyMedian(threadsAmount);
-//                } catch (Exception ex) {
-//                    Logger.getLogger(MedianFilterParallel.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//        }
-
-//        for (int i = 0; i < threadsAmount; i++) {
-//            threads[i] = new filterThread();
-//            threads[i].start();
-//        }
-//        for (int i = 0; i < threadsAmount; i++) {
-//            threads[i].join();
-//        }
-//        image.createImage();
-
+        producer.join();
+        consumer1.start();
+        consumer1.join();
+        
+        image.createImage();
+        
         long duration = System.currentTimeMillis() - startTime;
         System.out.println("duration: " + duration);
     }
