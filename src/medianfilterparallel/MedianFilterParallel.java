@@ -32,17 +32,18 @@ class MedianFilterParallel {
         final Image image = new Image(input, output, extension);
         
         final int packageAmount = 3;
-        BlockingQueue<Object> queue = new ArrayBlockingQueue<>(packageAmount + 1);
+        BlockingQueue<Object> queue = new ArrayBlockingQueue<>(packageAmount + 2);
         
         
         Thread producer = new Thread(new Producer(queue, image, packageAmount));
- 
+      
         Thread consumer1 = new Thread(new Consumer(queue));
         Thread consumer2 = new Thread(new Consumer(queue));
         Thread consumer3 = new Thread(new Consumer(queue));
  
         producer.start();
-
+  producer.join();
+        System.out.println(queue);
 //        final Thread[] threads = new Thread[threadsAmount];
 
         long startTime = System.currentTimeMillis();
