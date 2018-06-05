@@ -38,8 +38,6 @@ class MedianFilterParallel {
         Thread producer = new Thread(new Producer(queue, image, packageAmount));
 
         Thread consumer1 = new Thread(new Consumer(queue, image));
-        Thread consumer2 = new Thread(new Consumer(queue, image));
-        Thread consumer3 = new Thread(new Consumer(queue, image));
 
         producer.start();
         producer.join();

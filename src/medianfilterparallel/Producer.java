@@ -52,7 +52,6 @@ public class Producer implements Runnable {
         }
         final int heightPerPackage = imageHeight / packageAmount;
         modulo = imageHeight % packageAmount;
-        System.out.println(imageHeight);
         for (int i = 0; i < packageAmount; i++) {
      
             final int ii = i;
