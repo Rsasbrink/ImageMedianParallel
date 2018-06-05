@@ -28,24 +28,26 @@ class MedianFilterParallel {
     public static void main(String[] a) throws Throwable {
         long startTime = System.currentTimeMillis();
         final String extension = "png";
-        final String input = "input1.png";
-        final String output = "output1.png";
+        final String input = "input2.png";
+        final String output = "output2.png";
         final Image image = new Image(input, output, extension);
+        final int packageAmount = 50;
+        final int consumerAmount = 5;
+        final Thread[] consumers = new Thread[consumerAmount];
+        BlockingQueue<Object> queue = new ArrayBlockingQueue<>(packageAmount + consumerAmount + 1);
 
-        final int packageAmount = 4;
-        BlockingQueue<Object> queue = new ArrayBlockingQueue<>(packageAmount + 2);
-
-        Thread producer = new Thread(new Producer(queue, image, packageAmount));
-
-        Thread consumer1 = new Thread(new Consumer(queue, image));
-
+        Thread producer = new Thread(new Producer(queue, image, packageAmount, consumerAmount));
         producer.start();
         producer.join();
-        consumer1.start();
-        consumer1.join();
-        
+        for (int i = 0; i < consumers.length; i++) {
+            consumers[i] = new Thread(new Consumer(queue, image));
+            consumers[i].start();
+        }
+        for (Thread consumer : consumers) {
+            consumer.join();
+        }
         image.createImage();
-        
+
         long duration = System.currentTimeMillis() - startTime;
         System.out.println("duration: " + duration);
     }

@@ -19,19 +19,21 @@ public class Producer implements Runnable {
     private BlockingQueue<Object> queue;
     private Image image;
     private int packageAmount;
+    private int consumerAmount;
 
-    public Producer(BlockingQueue<Object> queue, Image image, int packageAmount) {
+    public Producer(BlockingQueue<Object> queue, Image image, int packageAmount, int consumerAmount) {
         this.queue = queue;
         this.image = image;
         this.packageAmount = packageAmount;
+        this.consumerAmount = consumerAmount;
     }
 
     public void run() {
         try {
-           
-                produce();
-            
-               System.out.println("Producer STOPPED.");
+
+            produce();
+
+            System.out.println("Producer STOPPED.");
 
         } catch (InterruptedException ie) {
             ie.printStackTrace();
@@ -53,7 +55,7 @@ public class Producer implements Runnable {
         final int heightPerPackage = imageHeight / packageAmount;
         modulo = imageHeight % packageAmount;
         for (int i = 0; i < packageAmount; i++) {
-     
+
             final int ii = i;
             Object currentObject;
             currentObject = new Object() {
@@ -63,22 +65,23 @@ public class Producer implements Runnable {
             };
             queue.put(currentObject);
         }
-  
+
         if (modulo > 0) {
             Object moduloObject = new Object() {
-                int offsetHeight = packageAmount*heightPerPackage;
+                int offsetHeight = packageAmount * heightPerPackage;
                 int height = imageHeight - (packageAmount * heightPerPackage);
                 int width = imageWidth;
             };
             queue.put(moduloObject);
         }
-   
-        Object emptyObject = new Object() {
-            int height = 0;
-            int width = 0;
-        };
-       
-        queue.put(emptyObject);
+        for (int i = 0; i < consumerAmount; i++) {
+            Object emptyObject = new Object() {
+                int height = 0;
+                int width = 0;
+            };
+
+            queue.put(emptyObject);
+        }
 
     }
 }
